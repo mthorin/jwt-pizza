@@ -10,6 +10,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "playwright test",
+    "nyc": "nyc",
     "test:coverage": "nyc --reporter=json-summary --reporter=text playwright test"
   },
   "devDependencies": {
