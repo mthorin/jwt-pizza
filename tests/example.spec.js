@@ -56,7 +56,7 @@ async function mockLoginDinerRoute(page){
 async function mockLoginFranchiseeRoute(page){
   await page.route('*/**/api/auth', async (route) => {
     const loginReq = { email: 'f@jwt.com', password: 'franchisee' };
-    const loginRes = { user: { id: 3, name: 'pizza franchisee', email: 'f@jwt.com', roles: [{ role: 'franchisee' }] }, token: 'abcdef' };
+    const loginRes = { user: { id: 3, name: 'pizza franchisee', email: 'f@jwt.com', roles: [{ role: 'franchisee', objectId: '1' }] }, token: 'abcdef' };
     if (route.request().method() === 'PUT') {
       expect(route.request().postDataJSON()).toMatchObject(loginReq);
       await route.fulfill({ json: loginRes });
@@ -112,7 +112,7 @@ async function mockPostOrderRoute(page){
 }
 
 async function mockCloseStoreRoute(page) {
-  await page.route('*/**/api/franchise/:id/store/:id', async (route) => {
+  await page.route(`*/**/api/franchise/1/store/10`, async (route) => {
     if (route.request().method() === 'DELETE') {
       await route.fulfill({ status: 200 });
     }
@@ -120,9 +120,9 @@ async function mockCloseStoreRoute(page) {
 }
 
 async function mockCreateStoreRoute(page) {
-  await page.route('*/**/api/franchise/:id/store', async (route) => {
+  await page.route(`*/**/api/franchise/1/store`, async (route) => {
     const storeReq = { name: 'New Store' };
-    const storeRes = { id: 10, name: 'New Store' };
+    const storeRes = { id: 10, franchiseID: 1, name: 'New Store' };
     if (route.request().method() === 'POST') {
       expect(route.request().postDataJSON()).toMatchObject(storeReq);
       await route.fulfill({ json: storeRes });
@@ -130,8 +130,8 @@ async function mockCreateStoreRoute(page) {
   });
 }
 
-async function mockCloseFranchiseRoute(page) {
-  await page.route('*/**/api/franchise/:id', async (route) => {
+async function mockCloseFranchiseRoute(page, franchiseID) {
+  await page.route(`*/**/api/franchise/${franchiseID}`, async (route) => {
     if (route.request().method() === 'DELETE') {
       await route.fulfill({ status: 200 });
     }
@@ -145,6 +145,65 @@ async function mockCreateFranchiseRoute(page) {
     if (route.request().method() === 'POST') {
       expect(route.request().postDataJSON()).toMatchObject(franchiseReq);
       await route.fulfill({ json: franchiseRes });
+    }
+  });
+}
+
+async function mockGetUserFranchiseRoute(page) {
+  await page.route('*/**/api/franchise/3', async (route) => {
+    const franchiseRes = [{
+      id: 1,
+      name: 'pizzaPocket',
+      admins: [
+        { id: 3, name: "pizza franchisee", email: "f@jwt.com" },
+      ],
+      stores: [
+        { id: 1, name: 'SLC', totalRevenue: 0.0304 },
+      ],
+    }];
+    if (route.request().method() === 'GET') {
+      await route.fulfill({ status: 200, json: franchiseRes });
+    }
+  });
+}
+
+async function mockGetUserFranchiseRouteUpdated(page) {
+  await page.route('*/**/api/franchise/3', async (route) => {
+    const franchiseRes = [{
+      id: 1,
+      name: 'pizzaPocket',
+      admins: [
+        { id: 3, name: "pizza franchisee", email: "f@jwt.com" },
+      ],
+      stores: [
+        { id: 1, name: 'SLC', totalRevenue: 0.0304 },
+        { id: 10, name: 'New Store', totalRevenue: 0 },
+      ],
+    }];
+    if (route.request().method() === 'GET') {
+      await route.fulfill({ status: 200, json: franchiseRes });
+    }
+  });
+}
+
+async function mockGetAdminFranchiseRoute(page) {
+  await page.route('*/**/api/franchise', async (route) => {
+    const franchiseRes = [{
+      id: 1,
+      name: "pizzaPocket",
+      admins: [{
+          id: 3,
+          name: "pizza franchisee",
+          email: "f@jwt.com"
+      }],
+      stores: [{
+          id: 1,
+          name: "SLC",
+          totalRevenue: 0.0304
+      }],
+  }];
+    if (route.request().method() === 'GET') {
+      await route.fulfill({ status: 200, json: franchiseRes });
     }
   });
 }
@@ -236,4 +295,45 @@ test('register and logout', async ({ page }) => {
   await expect(page.getByText('Awesome is a click away')).toBeVisible();
   await page.getByRole('link', { name: 'home' }).click();
   await page.getByRole('link', { name: 'Logout' }).click();
+});
+
+test('create and close store, franchisee dashboard', async ({ page }) => {
+  await mockLoginFranchiseeRoute(page);
+  await mockGetUserFranchiseRoute(page);
+  await mockCreateStoreRoute(page);
+  await mockCloseStoreRoute(page);
+
+  await page.goto('http://localhost:5173/');
+  await page.getByRole('link', { name: 'Login' }).click();
+  await page.getByPlaceholder('Email address').fill('f@jwt.com');
+  await page.getByPlaceholder('Email address').press('Tab');
+  await page.getByPlaceholder('Password').fill('franchisee');
+  await page.getByRole('button', { name: 'Login' }).click();
+  await expect(page.getByRole('link', { name: 'pf' })).toBeVisible();
+
+  await page.getByLabel('Global').getByRole('link', { name: 'Franchise' }).click();
+  await expect(page.getByRole('heading')).toContainText('pizzaPocket');
+  await expect(page.getByRole('main')).toContainText('Everything you need to run an JWT Pizza franchise. Your gateway to success.');
+  await expect(page.locator('tbody')).toContainText('0.03 ₿');
+  await expect(page.locator('tbody')).toContainText('SLC');
+
+  await page.getByRole('button', { name: 'Create store' }).click();
+  await page.getByPlaceholder('store name').click();
+  await page.getByPlaceholder('store name').fill('New Store');
+  await mockGetUserFranchiseRouteUpdated(page);
+  await page.getByRole('button', { name: 'Create' }).click();
+
+  await expect(page.getByRole('cell', { name: 'New Store' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: '0 ₿' })).toBeVisible();
+  await expect(page.locator('tbody')).toContainText('0 ₿');
+  await expect(page.locator('tbody')).toContainText('New Store');
+  await expect(page.getByRole('row', { name: 'New Store 0 ₿ Close' }).getByRole('button')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Create store' })).toBeVisible();
+
+  await page.getByRole('row', { name: 'New Store 0 ₿ Close' }).getByRole('button').click();
+  await expect(page.getByRole('heading')).toContainText('Sorry to see you go');
+  await expect(page.getByRole('main')).toContainText('Are you sure you want to close the pizzaPocket store New Store ? This cannot be restored. All outstanding revenue with not be refunded.');
+  await expect(page.getByRole('button', { name: 'Close' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Cancel' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close' }).click();
 });
