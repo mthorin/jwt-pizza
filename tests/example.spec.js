@@ -141,9 +141,8 @@ async function mockCloseFranchiseRoute(page) {
 
 async function mockCreateFranchiseRoute(page) {
   await page.route('*/**/api/franchise', async (route) => {
-    const franchiseReq = { stores: [], name: 'New Franchise', admins: [{ email: 'f@jwt.com' }] };
+    const franchiseReq = { name: 'New Franchise', admins: [{ email: 'f@jwt.com' }] };
     const franchiseRes = {
-      stores: [],
       name: "New Franchise",
       admins: [
           {
@@ -444,21 +443,18 @@ test('create and close franchise', async ({ page }) => {
   // await page.getByRole('button', { name: 'Close' }).click();
 });
 
-test('docs', async ({ page }) => {
-  await page.goto('http://localhost:5173/docs');
-  await expect(page.getByRole('main')).toContainText('[POST] /api/auth');
-  await expect(page.getByRole('main')).toContainText('JWT Pizza API');
-  await expect(page.getByRole('main')).toContainText('[PUT] /api/auth');
-  await expect(page.getByRole('main')).toContainText('🔐 [PUT] /api/auth/:userId');
-  await expect(page.getByRole('main')).toContainText('🔐 [DELETE] /api/auth');
-  await expect(page.getByRole('main')).toContainText('[GET] /api/order/menu');
-  await expect(page.getByRole('main')).toContainText('🔐 [PUT] /api/order/menu');
-  await expect(page.getByRole('main')).toContainText('🔐 [GET] /api/order');
-  await expect(page.getByRole('main')).toContainText('🔐 [POST] /api/order');
-  await expect(page.getByRole('main')).toContainText('[GET] /api/franchise');
-  await expect(page.getByRole('main')).toContainText('🔐 [GET] /api/franchise/:userId');
-  await expect(page.getByRole('main')).toContainText('🔐 [POST] /api/franchise');
-  await expect(page.getByRole('main')).toContainText('🔐 [DELETE] /api/franchise/:franchiseId');
-  await expect(page.getByRole('main')).toContainText('🔐 [POST] /api/franchise/:franchiseId/store');
-  await expect(page.getByRole('main')).toContainText('🔐 [DELETE] /api/franchise/:franchiseId/store/:storeId');
+test('diner dashboard', async ({ page }) => {
+  await mockLoginFranchiseeRoute(page);
+
+  await page.goto('http://localhost:5173/diner-dashboard');
+  await expect(page.getByRole('heading')).toContainText('Oops');
+  await expect(page.getByRole('main')).toContainText('It looks like we have dropped a pizza on the floor. Please try another page.');
+
+  await page.getByRole('link', { name: 'Login' }).click();
+  await page.getByPlaceholder('Email address').fill('f@jwt.com');
+  await page.getByPlaceholder('Password').click();
+  await page.getByPlaceholder('Password').fill('franchisee');
+  await page.getByRole('button', { name: 'Login' }).click();
+  await page.getByRole('link', { name: 'pf' }).click();
+  await expect(page.getByRole('main')).toContainText('Franchisee on 1');
 });
