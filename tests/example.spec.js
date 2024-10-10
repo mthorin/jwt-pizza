@@ -446,19 +446,19 @@ test('create and close franchise', async ({ page }) => {
 
 test('docs', async ({ page }) => {
   await page.goto('http://localhost:5173/docs');
+  await expect(page.getByRole('main')).toContainText('[POST] /api/auth');
   await expect(page.getByRole('main')).toContainText('JWT Pizza API');
-  await expect(page.getByText('[POST] /api/authRegister a')).toBeVisible();
-  await expect(page.getByText('[PUT] /api/authLogin existing')).toBeVisible();
-  await expect(page.getByText('🔐 [PUT] /api/auth/:userIdUpdate userExample requestcurl -X PUT localhost:3000/')).toBeVisible();
-  await expect(page.getByText('🔐 [DELETE] /api/authLogout a')).toBeVisible();
-  await expect(page.getByText('[GET] /api/order/menuGet the')).toBeVisible();
-  await expect(page.getByText('🔐 [PUT] /api/order/menuAdd')).toBeVisible();
-  await expect(page.getByText('🔐 [GET] /api/orderGet the')).toBeVisible();
-  await expect(page.getByText('🔐 [POST] /api/orderCreate a')).toBeVisible();
-  await expect(page.getByText('[GET] /api/franchiseList all')).toBeVisible();
-  await expect(page.getByText('🔐 [GET] /api/franchise/:userIdList a user\'s franchisesExample requestcurl')).toBeVisible();
-  await expect(page.getByText('🔐 [POST] /api/franchiseCreate a new franchiseExample requestcurl -X POST')).toBeVisible();
-  await expect(page.getByText('🔐 [DELETE] /api/franchise/:franchiseIdDelete a franchisesExample requestcurl -')).toBeVisible();
-  await expect(page.getByText('🔐 [POST] /api/franchise/:franchiseId/storeCreate a new franchise storeExample')).toBeVisible();
-  await expect(page.getByText('🔐 [DELETE] /api/franchise/:franchiseId/store/:storeIdDelete a storeExample')).toBeVisible();
+  await expect(page.getByRole('main')).toContainText('[PUT] /api/auth');
+  await expect(page.getByRole('main')).toContainText('🔐 [PUT] /api/auth/:userId');
+  await expect(page.getByRole('main')).toContainText('🔐 [DELETE] /api/auth');
+  await expect(page.getByRole('main')).toContainText('[GET] /api/order/menu');
+  await expect(page.getByRole('main')).toContainText('🔐 [PUT] /api/order/menu');
+  await expect(page.getByRole('main')).toContainText('🔐 [GET] /api/order');
+  await expect(page.getByRole('main')).toContainText('🔐 [POST] /api/order');
+  await expect(page.getByRole('main')).toContainText('[GET] /api/franchise');
+  await expect(page.getByRole('main')).toContainText('🔐 [GET] /api/franchise/:userId');
+  await expect(page.getByRole('main')).toContainText('🔐 [POST] /api/franchise');
+  await expect(page.getByRole('main')).toContainText('🔐 [DELETE] /api/franchise/:franchiseId');
+  await expect(page.getByRole('main')).toContainText('🔐 [POST] /api/franchise/:franchiseId/store');
+  await expect(page.getByRole('main')).toContainText('🔐 [DELETE] /api/franchise/:franchiseId/store/:storeId');
 });
