@@ -337,3 +337,30 @@ test('create and close store, franchisee dashboard', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Cancel' })).toBeVisible();
   await page.getByRole('button', { name: 'Close' }).click();
 });
+
+
+test('admin dashboard', async ({ page }) => {
+  await mockLoginAdminRoute(page);
+  await mockGetAdminFranchiseRoute(page);
+
+  await page.goto('http://localhost:5173/');
+  await page.getByRole('link', { name: 'Login' }).click();
+  await page.getByPlaceholder('Email address').fill('a@jwt.com');
+  await page.getByPlaceholder('Email address').press('Tab');
+  await page.getByPlaceholder('Password').fill('admin');
+  await page.getByRole('button', { name: 'Login' }).click();
+
+  await expect(page.getByRole('link', { name: '常' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Admin' })).toBeVisible();
+  
+  await page.getByRole('link', { name: 'Admin' }).click();
+  await expect(page.getByText('Mama Ricci\'s kitchen')).toBeVisible();
+  await expect(page.getByRole('heading')).toContainText('Mama Ricci\'s kitchen');
+  await expect(page.getByRole('main')).toContainText('Keep the dough rolling and the franchises signing up.');
+  await expect(page.getByRole('button', { name: 'Add Franchise' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'pizzaPocket' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'pizza franchisee' })).toBeVisible();
+  await expect(page.getByRole('row', { name: 'pizzaPocket pizza franchisee' }).getByRole('button')).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'SLC' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: '₿' })).toBeVisible();
+});
