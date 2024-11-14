@@ -12,7 +12,7 @@ Another error I encountered is GitHub wasn't recognizing one of the YAML files U
 http://pizza-status.tictactoevs.click
 
 ### GitHub README.md
-
+<img width="1265" alt="upptime_readme" src="https://github.com/user-attachments/assets/42ea1afb-e10f-4f21-aa85-9702ed63bfe5">
 
 ### Status Page
-
+<img width="773" alt="upptime_page" src="https://github.com/user-attachments/assets/7f9c8d77-f4e7-45fe-a2cf-496f9e33c10c">
